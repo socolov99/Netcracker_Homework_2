@@ -8,8 +8,9 @@ package com.netcracker.edu.sokolov.baselibraries.dice;
  */
 public class DiceMain {
     public static void main(String[] args) {
-        String[] namesOfPlayers = {"Kirill", "Maxim", "Anton"};
-        Dice dice = new Dice(namesOfPlayers, 3);
-        dice.play();
+        String[] namesOfPlayers = {"Kirill", "Maxim", "Anton", "Viktor", "Alex"};
+        DiceGameImpl diceGame = new DiceGameImpl(namesOfPlayers, 5);
+        diceGame.play();
+        diceGame.resultsOfTheGame();
     }
 }

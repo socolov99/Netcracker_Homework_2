@@ -1,25 +1,56 @@
 package com.netcracker.edu.sokolov.baselibraries.dice;
 
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
+
+import static java.lang.Math.random;
 
 /**
- * Class for Dice game
+ * Class for DiceGame implementation.
  *
  * @author kirillsokolov
  * @version 1.1
  */
-public class Dice {
-    private final LinkedList<Player> players;
-    private final int numberOfDices;
+public class DiceGameImpl implements DiceGame {
+    private final LinkedList<PlayerImpl> players;
+    private final DiceCubeImpl[] diceCubes;
+    private Player winner;
 
-    public Dice(String[] namesOfPlayers, int numberOfDices) {
-        LinkedList<Player> players = new LinkedList<>();
+    public DiceGameImpl(String[] namesOfPlayers, int numberOfDices) {
+        LinkedList<PlayerImpl> players = new LinkedList<>();
         for (String namesOfPlayer : namesOfPlayers) {
-            players.add(new Player(namesOfPlayer));
+            players.add(new PlayerImpl(namesOfPlayer));
         }
+
+        List<DiceCubeImpl> diceCubes = new ArrayList<>();
+        for (int i = 0; i < numberOfDices; i++) {
+            diceCubes.add(new DiceCubeImpl());
+        }
+
         this.players = players;
-        this.numberOfDices = numberOfDices;
+        this.diceCubes = diceCubes.toArray(new DiceCubeImpl[0]);
+    }
+
+    /**
+     * Class for DiceCube implementation
+     *
+     * @author kirillsokolov
+     * @version 1.0
+     */
+    public static class DiceCubeImpl implements DiceCube {
+        private int value;
+
+        public DiceCubeImpl() {
+        }
+
+        public void generateValue() {
+            value = (int) (random() * 6 + 1);
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+
     }
 
     /**
@@ -28,12 +59,12 @@ public class Dice {
      * @author kirillsokolov
      * @version 1.1
      */
-    public class Player {
+    public class PlayerImpl implements Player {
         private final String name;
         private int numberOfVictories = 0;
         private int points = 0;
 
-        public Player(String name) {
+        public PlayerImpl(String name) {
             this.name = name;
         }
 
@@ -49,14 +80,11 @@ public class Dice {
             return numberOfVictories;
         }
 
-        /**
-         * Method for rolling K dices (where K is number of dices)
-         */
-        private int rollDices() {
+        public int rollDices() {
             points = 0;
-            Random random = new Random();
-            for (int i = 0; i < numberOfDices; i++) {
-                points += random.nextInt(5) + 1;
+            for (DiceCubeImpl diceCube : diceCubes) {
+                diceCube.generateValue();
+                points += diceCube.getValue();
             }
             return points;
         }
@@ -67,19 +95,16 @@ public class Dice {
 
     }
 
-    /**
-     * Method for starting new game.
-     */
     public void play() {
-        Player winner = null;
+        this.winner = null;
         int step = 1;
         do {
             boolean draw = false;
             System.out.println("Step " + step);
             step++;
             int maxNumberOfPoints = 0;
-            Player stepWinner = players.getFirst();
-            for (Player player : players) {
+            PlayerImpl stepWinner = players.getFirst();
+            for (PlayerImpl player : players) {
                 int points = player.rollDices();
                 System.out.println(player.getName() + ", points: " + points);
                 if (points >= maxNumberOfPoints) {
@@ -88,7 +113,7 @@ public class Dice {
                 }
             }
             // if there are two or more stepWinners we say that it is a draw and don't give anyone points
-            for (Player player : players) {
+            for (PlayerImpl player : players) {
                 if (player.getPoints() == maxNumberOfPoints && player != stepWinner) {
                     draw = true;
                     break;
@@ -112,8 +137,24 @@ public class Dice {
                 players.addFirst(stepWinner);
             }
         } while (winner == null);
+    }
 
+    public void resultsOfTheGame() {
+        System.out.println("RESULTS OF THE GAME:");
         System.out.println("–––––––––––––––––––––––––––––––––");
         System.out.println(winner.getName() + " won the game !");
+        System.out.println("Scores:");
+
+        //sorts Players by NumberOfVictories decrease
+        players.sort(new Comparator<PlayerImpl>() {
+            @Override
+            public int compare(PlayerImpl o1, PlayerImpl o2) {
+                return o2.getNumberOfVictories() - o1.getNumberOfVictories();
+            }
+        });
+        for (PlayerImpl player : players) {
+            System.out.println(player.getName() + " won " + player.getNumberOfVictories() + " times");
+        }
+        System.out.println("–––––––––––––––––––––––––––––––––");
     }
 }
